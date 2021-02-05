@@ -1,0 +1,36 @@
+version: "3.8"
+services: 
+  redis:
+    image: redis:alpine
+    ports:
+      - '6379:6379'
+    volumes: 
+      - redis:/data/redis
+      - redis_config:/data/redis_config
+    command: ["redis-server"]
+  notes-app:
+    build:
+      context: .
+    depends_on: 
+      - redis
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./pages:/app/pages
+      - ./components:/app/components
+      - ./public:/app/public
+    environment: 
+      # redis://{{redis service}}:{{port}}
+      REDIS_URL: redis://redis:6379
+      SESSION_KEY: '<random key for cookie-based session>'
+      # for api call
+      ENDPOINT: http://localhost:3000
+      NEXT_PUBLIC_ENDPOINT: http://localhost:3000
+      # for github login
+      # https://docs.github.com/en/developers/apps/authorizing-oauth-apps
+      OAUTH_CLIENT_KEY: <github oauth app id>
+      OAUTH_CLIENT_SECRET: <github oauth app secret>
+
+volumes: 
+  redis:
+  redis_config:
